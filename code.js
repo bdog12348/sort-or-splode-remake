@@ -26,7 +26,7 @@ var bottomWall;
 var bombs = [];
 
 var maxSpeed = 2;
-var maxLife = 200;
+var maxLife = 500;
 
 var target;
 

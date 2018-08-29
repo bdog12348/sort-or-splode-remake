@@ -25,8 +25,13 @@ var bottomWall;
 
 var bombs = [];
 
+var startTime;
+var spawnCooldown = 2000;
+
 var maxSpeed = 2;
 var maxLife = 500;
+
+var gameover = false;
 
 var target;
 
@@ -42,6 +47,8 @@ function setup(){
     createCanvas(windowWidth, windowHeight);
     noSmooth();
     
+    startTime = millis();
+
     target = null;
     mouseDown = false;
 
@@ -97,15 +104,13 @@ function setup(){
     blackLeftWall.visible = false;
     //#endregion
 
-    for(let i = 0; i < 3; i++){
-        bombHolder = new Bomb();
-        if(random() < 0.5){
-            bombHolder.setColor("red");
-        }else{
-            bombHolder.setColor("black");
-        }
-        bombs.push(bombHolder);
+    bombHolder = new Bomb();
+    if(random() < 0.5){
+        bombHolder.setColor("red");
+    }else{
+        bombHolder.setColor("black");
     }
+    bombs.push(bombHolder);
 }
 
 function draw(){
@@ -114,6 +119,27 @@ function draw(){
     if(target != null){
         target.sprite.position.x = mouseX;
         target.sprite.position.y = mouseY;
+    }
+
+    if(!gameover){
+        if(millis() - startTime > spawnCooldown){
+            startTime = millis();
+            bombHolder = new Bomb();
+            if(random() < 0.5){
+                bombHolder.setColor("red");
+            }else{
+                bombHolder.setColor("black");
+            }
+            bombs.push(bombHolder);
+
+            if(spawnCooldown > 500){
+                spawnCooldown -= 20;
+            }
+        }
+    }else{
+        bombs.forEach((bomb) => {
+            bomb.sprite.remove();
+        })
     }
 
     updateBombs();
@@ -142,6 +168,10 @@ function updateBombs(){
 
         if(bombs[i].flashing && millis() - bombs[i].flashingTime > bombs[i].flashingDuration * 2){
             bombs[i].flashing = false;
+        }
+
+        if(current.life == 0){
+            gameover = true;
         }
 
         current.bounce(rightWall);
@@ -196,6 +226,7 @@ function mouseReleased(){
             target.sprite.life = -1;
         }else{
             target.sprite.remove();
+            gameover = true;
         }
     }
 
@@ -204,6 +235,7 @@ function mouseReleased(){
             target.sprite.life = -1;
         }else{
             target.sprite.remove();
+            gameover = true;
         }
     }
     
@@ -219,7 +251,11 @@ function Bomb(){
     this.setColor = function(col){
         if(col == "red"){
             this.color = col;
-            this.sprite = createSprite(random(width), random(height));
+            if(random() < 0.5){
+                this.sprite = createSprite(width / 2, height * 0.05);
+            }else{
+                this.sprite = createSprite(width / 2, height - height * 0.05);
+            }
             this.sprite.addAnimation("default", redBombAnim);
             this.sprite.velocity.x = random(-maxSpeed, maxSpeed);
             this.sprite.velocity.y = random(-maxSpeed, maxSpeed);
@@ -227,7 +263,11 @@ function Bomb(){
             this.sprite.addAnimation("flash", flashBombAnim);
         }else if (col == "black"){
             this.color = col;
-            this.sprite = createSprite(random(width), random(height));
+            if(random() < 0.5){
+                this.sprite = createSprite(width / 2, height * 0.05);
+            }else{
+                this.sprite = createSprite(width / 2, height - height * 0.05);
+            }
             this.sprite.addAnimation("default", blackBombAnim);
             this.sprite.velocity.x = random(-maxSpeed, maxSpeed);
             this.sprite.velocity.y = random(-maxSpeed, maxSpeed);
